@@ -11,7 +11,14 @@ const { articleDate, description, ogImage, title } = Astro.props
 
 const siteTitle = `${title} ${config.titleDelimiter} ${config.title}`
 const canonicalURL = new URL(Astro.url.pathname, Astro.site)
-const socialImageURL = new URL(ogImage ? ogImage : config.socialCard, Astro.url).href
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '')
+const withBase = (path: string) =>
+  path.startsWith('/') && !path.startsWith('//') ? `${basePath}${path}` : path
+const socialImageURL = new URL(
+  withBase(ogImage ? ogImage : config.socialCard),
+  Astro.site ?? Astro.url
+).href
+const rssURL = `${(Astro.site ?? Astro.url).toString().replace(/\/$/, '')}${basePath}/rss.xml`
 ---
 
 <meta charset='utf-8' />
@@ -77,14 +84,14 @@ const socialImageURL = new URL(ogImage ? ogImage : config.socialCard, Astro.url)
 <meta content={socialImageURL} property='twitter:image' />
 
 {/* Sitemap */}
-<link href='/sitemap-index.xml' rel='sitemap' />
+<link href={`${basePath}/sitemap-index.xml`} rel='sitemap' />
 
 {/* RSS auto-discovery */}
 <link
   rel='alternate'
   type='application/rss+xml'
   title={config.title}
-  href={`${Astro.site}rss.xml`}
+  href={rssURL}
 />
 
 <meta content={Astro.generator} name='generator' />

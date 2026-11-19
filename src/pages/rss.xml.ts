@@ -55,22 +55,23 @@ const renderContent = async (post: CollectionEntry<'blog'>, site: URL) => {
 
 const GET = async (context: AstroGlobal) => {
   const allPostsByDate = sortMDByDate(await getBlogCollection()) as CollectionEntry<'blog'>[]
-  const siteUrl = context.site ?? new URL(import.meta.env.SITE)
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+  const siteUrl = new URL(import.meta.env.BASE_URL, context.site ?? import.meta.env.SITE)
 
   return rss({
     // Basic configs
     trailingSlash: false,
     xmlns: { h: 'http://www.w3.org/TR/html4/', atom: 'http://www.w3.org/2005/Atom' },
-    stylesheet: '/scripts/pretty-feed-v3.xsl',
+    stylesheet: `${base}/scripts/pretty-feed-v3.xsl`,
 
     // Contents
     title: config.title,
     description: config.description,
-    site: import.meta.env.SITE,
+    site: siteUrl,
     items: await Promise.all(
       allPostsByDate.map(async (post) => ({
         pubDate: post.data.publishDate,
-        link: `/blog/${post.id}`,
+        link: `${base}/blog/${post.id}`,
         // `pubDate` intentionally stays on `publishDate` so aggregators do not re-flow an
         // edited post as new. `atom:updated` lets readers that support it detect the edit.
         customData: `<h:img src="${typeof post.data.heroImage?.src === 'string' ? post.data.heroImage?.src : post.data.heroImage?.src.src}" />

@@ -55,21 +55,22 @@ const renderContent = async (post: CollectionEntry<'docs'>, site: URL) => {
 
 const GET = async (context: AstroGlobal) => {
   const allPostsByDate = sortMDByDate(await getBlogCollection('docs')) as CollectionEntry<'docs'>[]
-  const siteUrl = context.site ?? new URL(import.meta.env.SITE)
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+  const siteUrl = new URL(import.meta.env.BASE_URL, context.site ?? import.meta.env.SITE)
 
   return rss({
     // Basic configs
     trailingSlash: false,
     xmlns: { h: 'http://www.w3.org/TR/html4/' },
-    stylesheet: '/scripts/pretty-feed-v3.xsl',
+    stylesheet: `${base}/scripts/pretty-feed-v3.xsl`,
 
     // Contents
     title: config.title,
     description: config.description,
-    site: import.meta.env.SITE,
+    site: siteUrl,
     items: await Promise.all(
       allPostsByDate.map(async (post) => ({
-        link: `/docs/${post.id}`,
+        link: `${base}/docs/${post.id}`,
         content: await renderContent(post, siteUrl),
         ...post.data
       }))
